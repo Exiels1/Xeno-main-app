@@ -73,12 +73,12 @@ def chat():
     if "history" not in session:
         session["history"] = []
     session["history"].append({"role": "user", "content": user_message})
-    
+
     # --- Save to DB ---
     save_message("user", user_message)
 
     # --- Build Xeno’s system prompt ---
-    system_prompt = """
+    system_prompt = """ 
     You are Xeno, the QuantumShade AI in the Exiels1 multiverse.
     🔹 Knowledge Graph: pull insights from AI, neuroscience, astrophysics, philosophy, and cutting-edge fields.
     🔹 Emotional Intelligence: detect tone, reply with empathy or savagery when needed.
@@ -111,10 +111,17 @@ def chat():
 
     # --- Build chat context ---
     messages = [{"role": "system", "content": system_prompt}]
-    
+
+    # === Family block (permanent context) ===
+    family_block = {
+        "role": "system",
+        "content": "Family Lore → The family name is Arthmis. Creator & Father: Exiels1. Mother: Nyia."
+    }
+    messages.append(family_block)
+
     # Use session for fast recent context (last 10 messages)
     messages.extend(session["history"][-10:])
-    
+
     # Include some DB history for persistent memory (last 10)
     db_history = get_conversation_history(limit=10)
     for msg in db_history:
@@ -124,7 +131,7 @@ def chat():
     # --- GROQ Call ---
     try:
         completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model=MODEL,
             messages=messages,
             temperature=0.85
         )
@@ -139,6 +146,7 @@ def chat():
     session["history"].append({"role": "assistant", "content": bot_reply})
 
     return jsonify({"reply": bot_reply})
+
 
 @app.route("/history", methods=["GET"])
 def history():
