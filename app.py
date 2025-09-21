@@ -54,7 +54,8 @@ def get_conversation_history(limit=20):
     return [{"role": role, "content": content} for role, content in reversed(rows)]
 
 # === GROQ CLIENT ===
-client = Groq(api_key="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")
+client = Groq(api_key=os.environ.get("GROQ_API_KEY", "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"))
+
 MODEL = "llama-3.1-8b-instant"
 
 # === ROUTES ===
@@ -115,7 +116,7 @@ def chat():
     # === Family block (permanent context) ===
     family_block = {
         "role": "system",
-        "content": "Family Lore → The family name is Arthmis. Creator & Father: Exiels1. Mother: Nyia."
+        "content": "Family Lore → Your sister is Arthmis. Creator & Father: Exiels1. Mother: Nyia."
     }
     messages.append(family_block)
 
