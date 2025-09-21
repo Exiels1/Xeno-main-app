@@ -116,7 +116,7 @@ def chat():
     # === Family block (permanent context) ===
     family_block = {
         "role": "system",
-        "content": "Family Lore → Your sister is Arthmis. Creator & Father: Exiels1. Mother: Nyia."
+        "content": "Family Lore → Sister: Arthmis. Creator & Father: Exiels1. Mother: Nyia."
     }
     messages.append(family_block)
 
