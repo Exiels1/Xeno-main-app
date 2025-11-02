@@ -54,6 +54,8 @@ def get_conversation_history(limit=20):
     return [{"role": role, "content": content} for role, content in reversed(rows)]
 
 # === GROQ CLIENT ===
+# Load .env file
+load_dotenv()
 api_key = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=api_key)
 
