@@ -197,8 +197,6 @@ if __name__ == "__main__":
             raise ValueError("GROQ_API_KEY is not set in environment variables! Set it in Render or your environment.")
 
         # Optionally initialize client here if you want a global reference
-        from groq import Groq
-        client = Groq(api_key=api_key)
 
         app = create_app()
         port = int(port_env)
