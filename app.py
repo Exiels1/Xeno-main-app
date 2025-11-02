@@ -54,7 +54,12 @@ def get_conversation_history(limit=20):
     return [{"role": role, "content": content} for role, content in reversed(rows)]
 
 # === GROQ CLIENT ===
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+api_key = os.environ.get("GROQ_API_KEY")
+if not api_key:
+    raise ValueError("GROQ_API_KEY is not set in environment variables!")
+
+client = Groq(api_key=api_key)
+
 MODEL = "llama-3.1-8b-instant"
 
 # === ROUTES ===
