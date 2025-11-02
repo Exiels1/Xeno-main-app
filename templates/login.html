@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Xeno — Login</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="quantum">
+  <div class="login-box">
+    <h1>Xeno</h1>
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <form method="post">
+      <input name="username" placeholder="Pick a username (no password for now)" />
+      <button type="submit">Enter</button>
+    </form>
+  </div>
+</body>
+</html>

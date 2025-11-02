@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QuantumShade • Xeno</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- Cytoscape for the knowledge graph -->
+  <script src="https://unpkg.com/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
+</head>
+<body class="quantum" data-theme="quantum">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="left">
+      <!-- Graph button removed -->
+      <div class="title">QuantumShade • Xeno</div>
+      <div id="modeBadge" class="badge">Normal</div>
+    </div>
+    <div class="right">
+      <label class="switch">
+        <input type="checkbox" id="toggleCreative">
+        <span class="slider"></span>
+      </label>
+      <span class="switch-label">Creative Mode</span>
+      <button id="btnProfile" class="ghost">⚙︎ Profile</button>
+    </div>
+  </header>
+
+  <!-- Layout -->
+  <main class="layout">
+    <!-- Knowledge Graph Panel (always visible, no close button) -->
+    <aside id="graphPanel" class="panel">
+      <div class="panel-header">
+        <div>Knowledge Graph</div>
+        <!-- Close button removed -->
+      </div>
+      <div id="graph" class="graph"></div>
+      <div class="panel-footer">
+        <button id="btnRefreshGraph" class="outline">Refresh from chat</button>
+      </div>
+    </aside>
+
+    <!-- Chat App -->
+    <section class="app">
+      <div class="chat-area" id="chatArea"></div>
+
+      <form class="chat-form" id="chatForm" autocomplete="off">
+        <input type="text" id="messageInput" placeholder="Type a message…" autocomplete="off" />
+        <button type="submit">Send</button>
+      </form>
+    </section>
+  </main>
+
+  <!-- Profile Drawer -->
+  <div id="profileDrawer" class="drawer">
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <h3>Profile & Preferences</h3>
+        <button id="btnCloseProfile" class="ghost">✕</button>
+      </div>
+
+      <div class="drawer-body">
+        <label class="field">
+          <span>Preferred Name</span>
+          <input id="prefName" type="text" placeholder="e.g., Exiels1" />
+        </label>
+
+        <label class="field">
+          <span>Tone / Style</span>
+          <select id="prefStyle">
+            <option value="concise">Concise (default)</option>
+            <option value="formal">Formal</option>
+            <option value="friendly">Friendly</option>
+            <option value="technical">Technical</option>
+            <option value="creative">Creative</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Theme</span>
+          <select id="prefTheme">
+            <option value="quantum">Quantum (cyan/pink)</option>
+            <option value="plasma">Plasma (violet/blue)</option>
+            <option value="crimson">Crimson (red/black)</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="drawer-footer">
+        <button id="btnSavePrefs">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
