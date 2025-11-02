@@ -55,9 +55,6 @@ def get_conversation_history(limit=20):
 
 # === GROQ CLIENT ===
 api_key = os.environ.get("GROQ_API_KEY")
-if not api_key:
-    raise ValueError("GROQ_API_KEY is not set in environment variables!")
-
 client = Groq(api_key=api_key)
 
 MODEL = "llama-3.1-8b-instant"
