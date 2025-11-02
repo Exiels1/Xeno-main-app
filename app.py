@@ -54,8 +54,7 @@ def get_conversation_history(limit=20):
     return [{"role": role, "content": content} for role, content in reversed(rows)]
 
 # === GROQ CLIENT ===
-client = Groq(api_key=os.environ.get("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"))
-
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 MODEL = "llama-3.1-8b-instant"
 
 # === ROUTES ===
