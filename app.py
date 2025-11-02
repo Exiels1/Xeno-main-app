@@ -1,4 +1,13 @@
-# app.py - QuantumShade + Xeno Hybrid
+# === Eventlet patch must come first ===
+try:
+    import eventlet
+    eventlet.monkey_patch()
+except Exception as e:
+    # If eventlet isn't available, we'll continue — local dev may not need it.
+    # On Render you should ensure eventlet is installed in requirements.txt.
+    print("⚠️ Eventlet not patched or not available:", e)
+
+# === Then your normal imports ===
 from dotenv import load_dotenv   # ✅ import this
 import os
 import sqlite3
@@ -184,24 +193,29 @@ if __name__ == "__main__":
     port_env = os.environ.get("PORT")
     if port_env:
         # Running on a platform like Render — run eventlet WSGI server.
-        # Eventlet monkey_patch must happen before other network activity.
-        try:
-            import eventlet
-            eventlet.monkey_patch()
-        except Exception as e:
-            raise RuntimeError("eventlet is required to run in production on platforms like Render. Install eventlet.") from e
-
+        # eventlet was already monkey-patched at the top of this file.
         # Ensure GROQ_API_KEY exists in env when starting publicly
         api_key = os.environ.get("GROQ_API_KEY")
         if not api_key:
             raise ValueError("GROQ_API_KEY is not set in environment variables! Set it in Render or your environment.")
 
         # Optionally initialize client here if you want a global reference
+        from groq import Groq
+        client = Groq(api_key=api_key)
 
         app = create_app()
         port = int(port_env)
         # Bind to 0.0.0.0 so the service is reachable externally
-        eventlet.wsgi.server(eventlet.listen(("0.0.0.0", port)), app)
+        # Use eventlet.wsgi (eventlet was imported at top)
+        try:
+            eventlet.wsgi.server(eventlet.listen(("0.0.0.0", port)), app)
+        except AttributeError:
+            # Some eventlet versions or environments may expose serve differently.
+            # Fallback to simple WSGI server from wsgiref (not async) so process won't crash,
+            # but for best production performance ensure eventlet is installed and compatible.
+            from wsgiref.simple_server import make_server
+            httpd = make_server("0.0.0.0", port, app)
+            httpd.serve_forever()
     else:
         # Local development: keep the previous behavior (open browser and use Flask dev server)
         import webbrowser
