@@ -1,4 +1,4 @@
-// QuantumShade Frontend — Xeno features: memory-driven UI, creative mode flag, sentiment glow, typing dots, knowledge graph
+// Zenaries Frontend — Xeno features: memory-driven UI, creative mode flag, sentiment glow, typing dots, knowledge graph
 
 // ---- Preferences (local) ----
 const PREFS_KEY = "xeno_prefs";
