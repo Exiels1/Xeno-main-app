@@ -37,3 +37,23 @@ Thumbs.db
 instance/
 *.sqlite3
 *.db-journal
+
+# Python virtual environment
+.venv/
+__pycache__/
+*.pyc
+
+# PyInstaller / Build outputs
+build/
+dist/
+*.spec
+
+# Database and sessions
+chat.db
+flask_session/
+
+# PyInstaller / Build outputs
+build/
+dist/
+*.spec
+*.exe
