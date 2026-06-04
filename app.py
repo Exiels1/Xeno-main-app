@@ -4,6 +4,9 @@ import sqlite3
 import threading
 import pyttsx3
 import speech_recognition as sr
+import mss
+import pytesseract
+from PIL import Image
 from datetime import datetime, UTC
 from flask import Flask, render_template, request, jsonify, session
 from flask_session import Session
@@ -11,6 +14,8 @@ from groq import Groq
 from groq._base_client import APIConnectionError
 from ollama import Client as OllamaClient
 from ddgs import DDGS
+
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 # === CONFIG ===
 app = Flask(__name__)
@@ -93,6 +98,17 @@ def speak(text):
         engine.stop()
     except Exception:
         pass
+
+
+def read_screen():
+    try:
+        with mss.mss() as sct:
+            screenshot = sct.grab(sct.monitors[1])
+            img = Image.frombytes('RGB', screenshot.size, screenshot.rgb)
+            text = pytesseract.image_to_string(img)
+            return text.strip()
+    except Exception:
+        return None
 
 
 def listen():
@@ -178,7 +194,7 @@ RULES:
                    "where is", "tell me about", "what is going on",
                    "going on", "happening", "update", "current",
                    "today", "now", "recently", "2026", "check", "look up", "science", "tech", "technology", "world", "latest in",
-"how has", "what are", "tell me about"]
+"how has", "what are", "tell me about", "what do you see", "read my screen", "what's on my screen"]
 
     search_context = ""
     if any(kw in user_message.lower() for kw in search_keywords):
@@ -186,6 +202,37 @@ RULES:
 
     # --- Build chat context ---
     messages = [{"role": "system", "content": system_prompt}]
+
+    if any(kw in user_message.lower() for kw in ["what do you see", "read my screen", "what's on my screen"]):
+        screen_text = read_screen()
+        if screen_text:
+            messages.append({
+                "role": "system",
+                "content": f"""You can see the user's screen. Here is the exact text captured:
+
+{screen_text[:1500]}
+
+Be SPECIFIC about what you see:
+- Name exact app titles, file names, error messages
+- Quote actual text you can read
+- Don't generalize, be precise
+- If you see code, identify the language and what it does
+- If you see errors, read them exactly"""
+            })
+            messages.append({
+                "role": "system",
+                "content": f"""You have been given real screen capture data from the user's PC via OCR software. This is REAL data, not a simulation. Do not say you cannot see the screen — you already have the data.
+
+Here is exactly what was captured:
+{screen_text[:1500]}
+
+Report specifically what you see — exact text, app names, file names, errors. Be precise."""
+            })
+            # Also include the OCR text as a user-level message to ensure the model treats it as observed data
+            messages.append({
+                "role": "user",
+                "content": f"SCREEN_OCR_DATA_START\n{screen_text[:1500]}\nSCREEN_OCR_DATA_END\nPlease use the above screen text to answer the user's request and do not claim you cannot see it."
+            })
 
     if search_context:
         messages.append({
