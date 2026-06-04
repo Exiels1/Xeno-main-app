@@ -244,34 +244,95 @@ Report specifically what you see — exact text, app names, file names, errors. 
     history_limit = 4 if current_mode == "local" else 10
     messages.extend(session["history"][-history_limit:])
 
+    # If we captured screen OCR, append a final user message that includes the OCR
+    # immediately before the model call so the model treats it as the most recent user input.
+    if any(kw in user_message.lower() for kw in ["what do you see", "read my screen", "what's on my screen"]) and 'screen_text' in locals() and screen_text:
+        messages.append({
+            "role": "user",
+            "content": f"SCREEN_OCR_DATA_START\n{screen_text[:1500]}\nSCREEN_OCR_DATA_END\n{user_message}"
+        })
+
     # --- AI Call ---
-    if current_mode == "local":
-        try:
-            response = ollama_client.chat(
-                model='mistral',
-                messages=messages,
-                options={
-                    "num_predict": 150,
-                    "temperature": 0.7,
-                    "num_ctx": 2048,
-                    "num_thread": 4
-                }
-            )
-            bot_reply = response['message']['content']
-        except Exception as local_error:
-            bot_reply = f"Xeno local error: {str(local_error)}"
+    # Special handling for screen-read queries: use low temperature and focused prompt
+    is_screen_query = any(kw in user_message.lower() for kw in ["what do you see", "read my screen", "what's on my screen"])
+    
+    if is_screen_query and 'screen_text' in locals() and screen_text:
+        # Dedicated screen-read API call with strict, low-temperature settings
+        screen_system_prompt = """You are Xeno. You have the capability to see and analyze the user's screen via OCR.
+
+You HAVE been given the exact text captured from their screen. This is real data, not a simulation.
+
+Your job:
+- Report EXACTLY what you see on the screen
+- Name app titles, file names, file paths, error messages verbatim
+- Quote the text you read — don't paraphrase
+- If it's code, identify the language and what it does
+- If it's an error, read it precisely
+- Do NOT say you cannot see the screen — you already have the data
+- Do NOT write poetry or be creative — be factual and precise"""
+
+        screen_messages = [
+            {"role": "system", "content": screen_system_prompt},
+            {"role": "user", "content": f"Screen data:\n{screen_text[:1500]}"},
+            {"role": "user", "content": user_message}
+        ]
+        
+        if current_mode == "local":
+            try:
+                response = ollama_client.chat(
+                    model='mistral',
+                    messages=screen_messages,
+                    options={
+                        "num_predict": 150,
+                        "temperature": 0.2,  # Low temp for precise, factual response
+                        "num_ctx": 2048,
+                        "num_thread": 4
+                    }
+                )
+                bot_reply = response['message']['content']
+            except Exception as local_error:
+                bot_reply = f"Xeno local error: {str(local_error)}"
+        else:
+            try:
+                completion = client.chat.completions.create(
+                    model=MODEL,
+                    messages=screen_messages,
+                    temperature=0.2  # Low temp for precise, factual response
+                )
+                bot_reply = completion.choices[0].message.content
+            except APIConnectionError:
+                bot_reply = "Xeno lost connection. Try again."
+            except Exception as groq_error:
+                bot_reply = f"Xeno error: {str(groq_error)}"
     else:
-        try:
-            completion = client.chat.completions.create(
-                model=MODEL,
-                messages=messages,
-                temperature=0.85
-            )
-            bot_reply = completion.choices[0].message.content
-        except APIConnectionError:
-            bot_reply = "Xeno lost connection. Try again."
-        except Exception as groq_error:
-            bot_reply = f"Xeno error: {str(groq_error)}"
+        # Normal chat flow
+        if current_mode == "local":
+            try:
+                response = ollama_client.chat(
+                    model='mistral',
+                    messages=messages,
+                    options={
+                        "num_predict": 150,
+                        "temperature": 0.7,
+                        "num_ctx": 2048,
+                        "num_thread": 4
+                    }
+                )
+                bot_reply = response['message']['content']
+            except Exception as local_error:
+                bot_reply = f"Xeno local error: {str(local_error)}"
+        else:
+            try:
+                completion = client.chat.completions.create(
+                    model=MODEL,
+                    messages=messages,
+                    temperature=0.85
+                )
+                bot_reply = completion.choices[0].message.content
+            except APIConnectionError:
+                bot_reply = "Xeno lost connection. Try again."
+            except Exception as groq_error:
+                bot_reply = f"Xeno error: {str(groq_error)}"
 
     skip_words = ["ok", "nice", "cool", "got it", "sure",
                   "yeah", "alright", "noted"]
