@@ -168,6 +168,9 @@ RULES:
 - Never give outdated info — always search before answering tech/science questions
 - Never repeat the same phrase twice in a conversation
 - Vary your energy expressions, don't always say "Let's go"
+- Never quote philosophers unprompted
+- Never search unless user explicitly says "search" or "look up"
+- Casual message = casual reply, maximum 1 sentence
 """
 
     search_keywords = ["search", "find", "what is", "who is",
