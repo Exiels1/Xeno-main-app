@@ -18,6 +18,10 @@
       <div id="modeBadge" class="badge">Normal</div>
     </div>
     <div class="right">
+      <div class="model-toggle" aria-label="AI mode">
+        <button id="btnGroqMode" class="mode-button active" type="button">⚡ Groq</button>
+        <button id="btnLocalMode" class="mode-button" type="button">🖥️ Local</button>
+      </div>
       <label class="switch">
         <input type="checkbox" id="toggleCreative">
         <span class="slider"></span>
@@ -47,6 +51,8 @@
 
       <form class="chat-form" id="chatForm" autocomplete="off">
         <input type="text" id="messageInput" placeholder="Type a message…" autocomplete="off" />
+        <button type="button" id="btnSpeak" class="mic-button" title="Speak last reply">🔊</button>
+        <button type="button" id="btnMic" class="mic-button" title="Voice input">🎙️</button>
         <button type="submit">Send</button>
       </form>
     </section>

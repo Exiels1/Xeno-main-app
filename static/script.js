@@ -29,6 +29,8 @@ function updateModeBadge(){
 const chatArea = document.getElementById("chatArea");
 const chatForm = document.getElementById("chatForm");
 const messageInput = document.getElementById("messageInput");
+const btnSpeak = document.getElementById("btnSpeak");
+const btnMic = document.getElementById("btnMic");
 const toggleCreative = document.getElementById("toggleCreative");
 const btnProfile = document.getElementById("btnProfile");
 const profileDrawer = document.getElementById("profileDrawer");
@@ -37,9 +39,12 @@ const prefName = document.getElementById("prefName");
 const prefStyle = document.getElementById("prefStyle");
 const prefTheme = document.getElementById("prefTheme");
 const btnSavePrefs = document.getElementById("btnSavePrefs");
+const btnGroqMode = document.getElementById("btnGroqMode");
+const btnLocalMode = document.getElementById("btnLocalMode");
 
 const btnRefreshGraph = document.getElementById("btnRefreshGraph");
 const graphPanel = document.getElementById("graphPanel");
+let currentAiMode = "groq";
 
 // Init UI with prefs
 applyTheme();
@@ -48,6 +53,7 @@ toggleCreative.checked = !!prefs.creative;
 prefName.value = prefs.name || "";
 prefStyle.value = prefs.style || "concise";
 prefTheme.value = prefs.theme || "quantum";
+updateAiModeButtons();
 
 // ---- Sentiment heuristic (lightweight) ----
 function inferSentiment(text){
@@ -139,13 +145,64 @@ async function loadHistory(){
   }
 }
 
-// ---- Build “context note” for backend (until server supports prefs) ----
-function buildContextPrefix(){
-  const name = prefs.name ? `User name: ${prefs.name}. ` : "";
-  const style = `Style: ${prefs.style}. `;
-  const mode = prefs.creative ? "Mode: creative. " : "Mode: normal. ";
-  return `[PREFERENCES] ${name}${style}${mode}`;
+// ---- AI Mode ----
+function updateAiModeButtons(){
+  btnGroqMode.classList.toggle("active", currentAiMode === "groq");
+  btnLocalMode.classList.toggle("active", currentAiMode === "local");
 }
+
+async function switchAiMode(mode){
+  currentAiMode = mode;
+  updateAiModeButtons();
+
+  try{
+    const resp = await fetch("/switch-mode", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ mode })
+    });
+    const data = await resp.json();
+    currentAiMode = data.mode || mode;
+    updateAiModeButtons();
+  }catch(err){
+    appendMessage("assistant", "Couldn't switch AI mode right now.");
+  }
+}
+
+btnGroqMode.addEventListener("click", ()=> switchAiMode("groq"));
+btnLocalMode.addEventListener("click", ()=> switchAiMode("local"));
+
+// ---- Voice Input ----
+btnMic.addEventListener("click", async ()=>{
+  btnMic.disabled = true;
+  btnMic.classList.add("listening");
+
+  try{
+    const resp = await fetch("/listen", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" }
+    });
+    const data = await resp.json();
+    if (data.text){
+      messageInput.value = data.text;
+      messageInput.focus();
+    }
+  }catch(err){
+    appendMessage("assistant", "Couldn't hear anything.");
+  }finally{
+    btnMic.disabled = false;
+    btnMic.classList.remove("listening");
+  }
+});
+
+btnSpeak.addEventListener("click", ()=>{
+  const lastAssistant = Array.from(chatArea.querySelectorAll(".msg.assistant .content")).pop();
+  if (lastAssistant && lastAssistant.textContent.trim()) {
+    speak(lastAssistant.textContent.trim());
+  } else {
+    appendMessage("assistant", "Nothing to speak yet.");
+  }
+});
 
 // ---- Send message ----
 chatForm.addEventListener("submit", async (e)=>{
@@ -161,8 +218,7 @@ chatForm.addEventListener("submit", async (e)=>{
   showTyping();
 
   try{
-    // We prepend a lightweight context prefix until you add server-side handling
-    const payload = { message: `${buildContextPrefix()}\n${userMsg}` };
+    const payload = { message: userMsg };
 
     const resp = await fetch("/chat", {
       method:"POST", headers:{ "Content-Type":"application/json" },
