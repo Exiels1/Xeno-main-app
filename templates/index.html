@@ -5,100 +5,128 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Zenaries • Xeno</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <!-- Cytoscape for the knowledge graph -->
+  <!-- Fonts & Libraries -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body class="quantum" data-theme="quantum">
 
-  <!-- Topbar -->
+  <div class="bg-blur"></div>
+
   <header class="topbar">
-    <div class="left">
-      <!-- Graph button removed -->
-      <div class="title">Zenaries • Xeno</div>
-      <div id="modeBadge" class="badge">Normal</div>
-    </div>
-    <div class="right">
-      <div class="model-toggle" aria-label="AI mode">
-        <button id="btnGroqMode" class="mode-button active" type="button">⚡ Groq</button>
-        <button id="btnLocalMode" class="mode-button" type="button">🖥️ Local</button>
+    <div class="brand">
+      <div class="logo-orb"></div>
+      <div class="brand-text">
+        <span class="brand-main">ZENARIES</span>
+        <span class="brand-sub">XENO HYBRID</span>
       </div>
-      <label class="switch">
+      <div id="modeBadge" class="badge">NORMAL</div>
+    </div>
+
+    <div class="actions">
+      <div class="engine-selector">
+        <button id="btnGroqMode" class="engine-btn active" title="Groq Llama 3.3">
+          <i data-lucide="zap"></i> <span>GROQ</span>
+        </button>
+        <button id="btnLocalMode" class="engine-btn" title="Local Mistral/Phi">
+          <i data-lucide="cpu"></i> <span>LOCAL</span>
+        </button>
+      </div>
+      
+      <div class="v-separator"></div>
+
+      <label class="creative-toggle" title="Toggle Creative Mode">
         <input type="checkbox" id="toggleCreative">
-        <span class="slider"></span>
+        <div class="toggle-track">
+          <i data-lucide="sparkles"></i>
+        </div>
       </label>
-      <span class="switch-label">Creative Mode</span>
-      <button id="btnProfile" class="ghost">⚙︎ Profile</button>
+
+      <button id="btnProfile" class="icon-btn" title="System Settings">
+        <i data-lucide="settings"></i>
+      </button>
     </div>
   </header>
 
-  <!-- Layout -->
-  <main class="layout">
-    <!-- Knowledge Graph Panel (always visible, no close button) -->
-    <aside id="graphPanel" class="panel">
-      <div class="panel-header">
-        <div>Knowledge Graph</div>
-        <!-- Close button removed -->
+  <main class="workspace">
+    <!-- Knowledge HUD -->
+    <aside id="graphPanel" class="hud-panel">
+      <div class="hud-header">
+        <span><i data-lucide="network"></i> KNOWLEDGE GRAPH</span>
+        <button id="btnRefreshGraph" class="mini-btn"><i data-lucide="refresh-cw"></i></button>
       </div>
-      <div id="graph" class="graph"></div>
-      <div class="panel-footer">
-        <button id="btnRefreshGraph" class="outline">Refresh from chat</button>
-      </div>
+      <div id="graph" class="graph-container"></div>
     </aside>
 
-    <!-- Chat App -->
-    <section class="app">
-      <div class="chat-area" id="chatArea"></div>
+    <!-- Main Chat Interface -->
+    <section class="chat-terminal">
+      <div class="chat-area" id="chatArea">
+        <!-- Messages appear here -->
+      </div>
 
-      <form class="chat-form" id="chatForm" autocomplete="off">
-        <input type="text" id="messageInput" placeholder="Type a message…" autocomplete="off" />
-        <button type="button" id="btnSpeak" class="mic-button" title="Speak last reply">🔊</button>
-        <button type="button" id="btnMic" class="mic-button" title="Voice input">🎙️</button>
-        <button type="submit">Send</button>
-      </form>
+      <div class="input-container">
+        <form class="chat-form" id="chatForm">
+          <div class="input-wrapper">
+            <input type="text" id="messageInput" placeholder="Command Xeno..." autocomplete="off" />
+            <div class="input-tools">
+              <button type="button" id="btnMic" class="tool-btn" title="Voice Input">
+                <i data-lucide="mic"></i>
+              </button>
+              <button type="button" id="btnSpeak" class="tool-btn" title="Read Aloud">
+                <i data-lucide="volume-2"></i>
+              </button>
+            </div>
+          </div>
+          <button type="submit" class="send-btn">
+            <i data-lucide="arrow-up"></i>
+          </button>
+        </form>
+      </div>
     </section>
   </main>
 
-  <!-- Profile Drawer -->
-  <div id="profileDrawer" class="drawer">
-    <div class="drawer-content">
+  <!-- Settings Drawer -->
+  <div id="profileDrawer" class="drawer-overlay">
+    <div class="drawer">
       <div class="drawer-header">
-        <h3>Profile & Preferences</h3>
-        <button id="btnCloseProfile" class="ghost">✕</button>
+        <h2><i data-lucide="sliders"></i> Core Preferences</h2>
+        <button id="btnCloseProfile" class="close-btn"><i data-lucide="x"></i></button>
       </div>
 
       <div class="drawer-body">
-        <label class="field">
-          <span>Preferred Name</span>
-          <input id="prefName" type="text" placeholder="e.g., Exiels" />
-        </label>
+        <div class="field-group">
+          <label>User Identity</label>
+          <input id="prefName" type="text" placeholder="Your name..." />
+        </div>
 
-        <label class="field">
-          <span>Tone / Style</span>
+        <div class="field-group">
+          <label>Response Protocol</label>
           <select id="prefStyle">
-            <option value="concise">Concise (default)</option>
-            <option value="formal">Formal</option>
-            <option value="friendly">Friendly</option>
-            <option value="technical">Technical</option>
-            <option value="creative">Creative</option>
+            <option value="concise">Concise / Sharp</option>
+            <option value="technical">Engineering / Detail</option>
+            <option value="creative">Unfiltered / Bold</option>
           </select>
-        </label>
+        </div>
 
-        <label class="field">
-          <span>Theme</span>
-          <select id="prefTheme">
-            <option value="quantum">Quantum (cyan/pink)</option>
-            <option value="plasma">Plasma (violet/blue)</option>
-            <option value="crimson">Crimson (red/black)</option>
-          </select>
-        </label>
+        <div class="field-group">
+          <label>Visual Interface</label>
+          <div class="theme-grid">
+            <button class="theme-chip" data-t="quantum">Quantum</button>
+            <button class="theme-chip" data-t="plasma">Plasma</button>
+            <button class="theme-chip" data-t="crimson">Crimson</button>
+          </div>
+        </div>
       </div>
 
       <div class="drawer-footer">
-        <button id="btnSavePrefs">Save</button>
+        <button id="btnSavePrefs" class="save-btn">Apply Sync</button>
       </div>
     </div>
   </div>
 
   <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script>lucide.createIcons();</script>
 </body>
 </html>

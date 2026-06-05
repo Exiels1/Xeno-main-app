@@ -3,17 +3,43 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Xeno — Login</title>
+  <title>Xeno — AI Assistant</title>
   <link rel="stylesheet" href="/static/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="quantum">
+<body class="quantum" data-theme="quantum">
+  <div class="bg-blur"></div>
+  
   <div class="login-box">
-    <h1>Xeno</h1>
-    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <div style="margin-bottom: 1rem;">
+      <div class="logo-orb" style="width: 24px; height: 24px; margin: 0 auto; margin-bottom: 1rem;"></div>
+    </div>
+    
+    <h1>XENO</h1>
+    <p style="color: var(--text-dim); font-size: 13px; margin: 0 0 2rem 0; letter-spacing: 1px;">AI Starter Assistant</p>
+    
+    {% if error %}<div class="error"><strong>⚠️ Error:</strong> {{ error }}</div>{% endif %}
+    
     <form method="post">
-      <input name="username" placeholder="Pick a username (no password for now)" />
-      <button type="submit">Enter</button>
+      <input 
+        name="username" 
+        type="text" 
+        placeholder="Enter a username" 
+        required
+        autocomplete="off"
+        maxlength="32"
+      />
+      <button type="submit">
+        <span>Start Session</span>
+      </button>
     </form>
+    
+    <p style="color: var(--text-dim); font-size: 12px; margin-top: 1.5rem; opacity: 0.6;">
+      No password required. Pick any username to begin.
+    </p>
   </div>
+  
+  <script>lucide.createIcons();</script>
 </body>
 </html>
